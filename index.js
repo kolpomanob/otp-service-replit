@@ -18,7 +18,7 @@ wss.on('connection', (ws) => {
         if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: 'ping' }));
         }
-    }, 1200000);
+    }, 120000);
 
     // 🧹 Clean up on disconnect
     ws.on('close', () => {
