@@ -12,12 +12,33 @@ const clients = [];
 wss.on('connection', (ws) => {
     console.log('WebSocket connected');
     clients.push(ws);
+	
+	    // 🔁 Start keep-alive ping interval every 30 seconds
+    const keepAlive = setInterval(() => {
+        if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }));
+        }
+    }, 30000);
 
+    // 🧹 Clean up on disconnect
     ws.on('close', () => {
         console.log('WebSocket disconnected');
+        clearInterval(keepAlive); // stop pinging
         const index = clients.indexOf(ws);
         if (index > -1) {
             clients.splice(index, 1);
+        }
+    });
+	
+	// Optional: Handle pong response from client
+    ws.on('message', (msg) => {
+        try {
+            const parsed = JSON.parse(msg);
+            if (parsed.type === 'pong') {
+                console.log('Received pong from client');
+            }
+        } catch (e) {
+            // ignore non-JSON messages
         }
     });
 });

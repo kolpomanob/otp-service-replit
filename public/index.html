@@ -455,6 +455,12 @@
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+			
+			// Respond to server ping to keep connection alive
+    if (data.type === 'ping') {
+        ws.send(JSON.stringify({ type: 'pong' }));
+        return;
+    }
             
             // Handle both single OTP and batch of OTPs
             if (Array.isArray(data)) {
