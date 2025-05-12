@@ -13,12 +13,12 @@ wss.on('connection', (ws) => {
     console.log('WebSocket connected');
     clients.push(ws);
 	
-	    // 🔁 Start keep-alive ping interval every 30 seconds
+	    // 🔁 Start keep-alive ping interval every 2 Min
     const keepAlive = setInterval(() => {
         if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: 'ping' }));
         }
-    }, 30000);
+    }, 1200000);
 
     // 🧹 Clean up on disconnect
     ws.on('close', () => {
