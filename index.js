@@ -119,7 +119,7 @@ app.get('/fetch-otp-data', (req, res) => {
 });
 
 // Add this near your other route handlers in index.js
-app.get('/download/Ivacfwd4.6', (req, res) => {
+app.get('/download/ivacotpv4.6(gcp)', (req, res) => {
     res.download(__dirname + '/public/apks/ivacotpv4.6(gcp).apk');
 });
 
@@ -132,8 +132,8 @@ app.get('/download/ivac', (req, res) => {
 });
 
 // Start server
-const server = app.listen(process.env.PORT || 3000, () => {
-    console.log(`Server running on port ${process.env.PORT || 3000}`);
+const server = app.listen(process.env.PORT || 3001, () => {
+    console.log(`Server running on port ${process.env.PORT || 3001}`);
 });
 
 server.on('upgrade', (req, socket, head) => {
