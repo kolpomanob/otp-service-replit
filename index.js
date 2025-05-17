@@ -120,7 +120,7 @@ app.get('/fetch-otp-data', (req, res) => {
 
 // Add this near your other route handlers in index.js
 app.get('/download/Ivacfwd4.4', (req, res) => {
-    res.download(__dirname + '/public/apks/Ivacfwd4.4.apk');
+    res.download(__dirname + '/public/apks/ivacotpv4.6(gcp).apk');
 });
 
 app.get('/download/smslistener', (req, res) => {
